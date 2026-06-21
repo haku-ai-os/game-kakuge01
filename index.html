@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NEON RING BRAWL</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23020812'/%3E%3Cpath d='M32 7 56 32 32 57 8 32Z' fill='%2300eaff'/%3E%3Cpath d='M32 15 48 32 32 49 16 32Z' fill='%23ff35c8'/%3E%3Ccircle cx='32' cy='32' r='8' fill='%23ffd84e'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #02040a;
+      --panel: rgba(4, 12, 26, .88);
+      --line: rgba(90, 230, 255, .52);
+      --cyan: #52e8ff;
+      --pink: #ff35c8;
+      --gold: #ffd84e;
+      --green: #78ff9a;
+      --red: #ff5277;
+      --text: #f6fbff;
+      --muted: rgba(202, 233, 255, .68);
+      --ink: #050815;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 15%, rgba(82, 232, 255, .22), transparent 26%),
+        radial-gradient(circle at 84% 20%, rgba(255, 53, 200, .20), transparent 28%),
+        radial-gradient(circle at 50% 90%, rgba(255, 216, 78, .14), transparent 34%),
+        linear-gradient(135deg, #01030a, #071226 42%, #03030a);
+      color: var(--text);
+      font-family: "Segoe UI", Inter, "Noto Sans JP", system-ui, sans-serif;
+      touch-action: none;
+      user-select: none;
+      letter-spacing: 0;
+    }
+
+    button {
+      border: 0;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      width: 100%;
+      height: 100%;
+      min-height: 560px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 12px;
+      position: relative;
+      background:
+        linear-gradient(90deg, rgba(82, 232, 255, .055) 1px, transparent 1px),
+        linear-gradient(rgba(82, 232, 255, .04) 1px, transparent 1px),
+        rgba(0,0,0,.16);
+      background-size: 46px 46px;
+      box-shadow: inset 0 0 150px rgba(82, 232, 255, .10);
+    }
+
+    .brand {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 0 10px;
+      z-index: 6;
+    }
+
+    .brand-title {
+      justify-self: start;
+      font-size: clamp(22px, 5vw, 52px);
+      line-height: .86;
+      font-weight: 1000;
+      font-style: italic;
+      letter-spacing: -1px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      text-shadow: 0 0 18px rgba(82,232,255,.75), 0 0 36px rgba(255,53,200,.35);
+    }
+
+    .brand-title strong {
+      display: block;
+      color: var(--pink);
+      text-shadow: 0 0 18px rgba(255,53,200,.88), 0 0 38px rgba(255,216,78,.22);
+    }
+
+    .tagline {
+      justify-self: end;
+      max-width: 380px;
+      color: #fff;
+      font-size: clamp(11px, 2.1vw, 18px);
+      font-weight: 900;
+      font-style: italic;
+      text-transform: uppercase;
+      text-align: right;
+      line-height: 1.25;
+    }
+
+    .tagline span:nth-child(2) { color: var(--pink); }
+    .tagline span:nth-child(3) { color: var(--gold); }
+
+    .sound {
+      min-width: 96px;
+      height: 38px;
+      padding: 0 14px;
+      clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
+      border: 1px solid rgba(120,255,154,.45);
+      background: linear-gradient(135deg, rgba(12,48,38,.94), rgba(2,8,16,.88));
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 1000;
+      letter-spacing: 1px;
+      text-shadow: 0 0 12px rgba(120,255,154,.75);
+      box-shadow: inset 0 0 18px rgba(120,255,154,.13), 0 0 18px rgba(120,255,154,.16);
+    }
+
+    .hud {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      z-index: 3;
+    }
+
+    .fighter-card, .timer-card {
+      min-height: 76px;
+      position: relative;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), transparent 44%),
+        linear-gradient(135deg, rgba(7,22,42,.95), rgba(2,6,15,.9));
+      clip-path: polygon(20px 0, calc(100% - 38px) 0, 100% 38px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 38px 100%, 0 calc(100% - 38px), 0 20px);
+      box-shadow: inset 0 0 0 2px rgba(255,216,78,.10), 0 0 24px rgba(82,232,255,.18);
+    }
+
+    .fighter-card.p2 {
+      border-color: rgba(255,53,200,.72);
+      box-shadow: inset 0 0 0 2px rgba(255,216,78,.08), 0 0 24px rgba(255,53,200,.18);
+    }
+
+    .label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--cyan);
+      font-size: 14px;
+      font-weight: 1000;
+      font-style: italic;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(82,232,255,.7);
+    }
+
+    .p2 .label {
+      justify-content: flex-end;
+      color: var(--pink);
+      text-shadow: 0 0 12px rgba(255,53,200,.7);
+    }
+
+    .damage-row {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .p2 .damage-row { flex-direction: row-reverse; }
+
+    .damage {
+      color: #fff;
+      font-size: clamp(28px, 5.8vw, 46px);
+      line-height: 1;
+      font-weight: 1000;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 16px rgba(255,255,255,.46);
+    }
+
+    .damage span {
+      color: var(--cyan);
+      font-size: .55em;
+    }
+
+    .p2 .damage span { color: var(--pink); }
+
+    .stocks {
+      color: var(--cyan);
+      font-size: 16px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 12px rgba(82,232,255,.7);
+      white-space: nowrap;
+    }
+
+    .p2 .stocks {
+      color: var(--pink);
+      text-shadow: 0 0 12px rgba(255,53,200,.7);
+    }
+
+    .timer-card {
+      min-width: 154px;
+      min-height: 58px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: clamp(20px, 4vw, 32px);
+      font-weight: 1000;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 16px rgba(255,255,255,.48);
+      clip-path: polygon(24px 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0 50%);
+    }
+
+    .arena {
+      min-height: 0;
+      position: relative;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      border: 1px solid rgba(82,232,255,.42);
+      background:
+        linear-gradient(90deg, transparent 0 20%, rgba(255,216,78,.38) 20% 21%, transparent 21% 79%, rgba(255,216,78,.38) 79% 80%, transparent 80%),
+        linear-gradient(180deg, rgba(82,232,255,.07), transparent 22%, transparent 78%, rgba(255,53,200,.09));
+      clip-path: polygon(28px 0, calc(100% - 54px) 0, 100% 54px, 100% calc(100% - 28px), calc(100% - 28px) 100%, 54px 100%, 0 calc(100% - 54px), 0 28px);
+      box-shadow: inset 0 0 55px rgba(0,0,0,.64), 0 0 38px rgba(82,232,255,.12);
+    }
+
+    .screen {
+      width: min(100%, calc((100vh - 250px) * 16 / 9));
+      max-width: 1120px;
+      aspect-ratio: 16 / 9;
+      position: relative;
+      border: 2px solid rgba(82,232,255,.78);
+      clip-path: polygon(28px 0, calc(100% - 28px) 0, 100% 28px, 100% calc(100% - 28px), calc(100% - 28px) 100%, 28px 100%, 0 calc(100% - 28px), 0 28px);
+      background: #02050e;
+      box-shadow:
+        0 0 0 4px rgba(255,216,78,.24),
+        0 0 0 8px rgba(3,10,22,.98),
+        0 0 42px rgba(82,232,255,.5),
+        0 0 70px rgba(255,53,200,.17),
+        inset 0 0 90px rgba(82,232,255,.12);
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: auto;
+    }
+
+    .scan {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .45;
+      mix-blend-mode: screen;
+      background:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.45));
+      background-size: 100% 4px, 100% 100%;
+    }
+
+    .touch {
+      display: none;
+      grid-template-columns: 1.08fr .76fr .76fr .76fr;
+      gap: 12px;
+      min-height: 132px;
+      z-index: 5;
+    }
+
+    .pad {
+      width: min(33vw, 160px);
+      aspect-ratio: 1;
+      justify-self: center;
+      align-self: center;
+      position: relative;
+      border-radius: 999px;
+      border: 1px solid rgba(255,216,78,.55);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(0,0,0,.14) 0 32%, transparent 33%),
+        conic-gradient(from 0deg, rgba(82,232,255,.95), rgba(255,216,78,.74), rgba(255,53,200,.5), rgba(82,232,255,.95)),
+        radial-gradient(circle at 50% 50%, rgba(10,37,68,.96), rgba(0,0,0,.94) 72%);
+      box-shadow: inset 0 0 34px rgba(0,0,0,.65), 0 0 34px rgba(82,232,255,.35);
+      touch-action: none;
+    }
+
+    .pad::before {
+      content: "";
+      position: absolute;
+      inset: 15%;
+      border-radius: 999px;
+      border: 2px solid rgba(82,232,255,.42);
+      box-shadow: inset 0 0 22px rgba(82,232,255,.16), 0 0 20px rgba(82,232,255,.35);
+    }
+
+    .stick {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 45%;
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.36);
+      background:
+        radial-gradient(circle at 35% 27%, rgba(255,255,255,.82), transparent 20%),
+        radial-gradient(circle at 50% 58%, #081322, #000 72%);
+      box-shadow: inset 0 -10px 24px rgba(0,0,0,.78), 0 0 30px rgba(82,232,255,.45);
+      pointer-events: none;
+    }
+
+    .touch button {
+      min-height: 116px;
+      position: relative;
+      overflow: hidden;
+      clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%, 0 calc(100% - 18px), 0 18px);
+      border: 1px solid rgba(255,255,255,.28);
+      color: #05101b;
+      font-size: clamp(13px, 3.6vw, 24px);
+      font-weight: 1000;
+      text-transform: uppercase;
+      text-shadow: 0 2px 0 rgba(255,255,255,.22);
+      box-shadow: inset 0 0 0 5px rgba(255,255,255,.12), inset 0 0 28px rgba(255,255,255,.14);
+    }
+
+    .touch button::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 1px solid rgba(255,255,255,.32);
+      clip-path: inherit;
+      pointer-events: none;
+    }
+
+    .attack { background: linear-gradient(135deg, #ff7ada, #ff35c8, #7f3dff); box-shadow: 0 0 34px rgba(255,53,200,.38); }
+    .jump { background: linear-gradient(135deg, #35dfff, #52e8ff, #168dff); box-shadow: 0 0 34px rgba(82,232,255,.38); }
+    .special { background: linear-gradient(135deg, #ffe780, #ffd84e, #ff9d2e); box-shadow: 0 0 34px rgba(255,216,78,.32); }
+
+    .setup {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 30% 18%, rgba(82,232,255,.20), transparent 28%),
+        radial-gradient(circle at 76% 24%, rgba(255,53,200,.18), transparent 28%),
+        rgba(0, 0, 0, .78);
+      backdrop-filter: blur(12px);
+    }
+
+    .setup.hidden { display: none; }
+
+    .setup-panel {
+      width: min(1120px, 100%);
+      max-height: 94vh;
+      overflow: auto;
+      padding: 18px;
+      border: 1px solid rgba(82,232,255,.55);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), transparent 38%),
+        linear-gradient(135deg, rgba(5,16,34,.96), rgba(2,5,12,.94));
+      clip-path: polygon(30px 0, calc(100% - 52px) 0, 100% 52px, 100% calc(100% - 30px), calc(100% - 30px) 100%, 52px 100%, 0 calc(100% - 52px), 0 30px);
+      box-shadow: 0 0 42px rgba(82,232,255,.24), inset 0 0 48px rgba(255,53,200,.06);
+    }
+
+    .setup-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+
+    .setup-title {
+      margin: 0;
+      font-size: clamp(32px, 7vw, 74px);
+      line-height: .86;
+      font-weight: 1000;
+      font-style: italic;
+      text-transform: uppercase;
+      color: var(--cyan);
+      text-shadow: 0 0 20px rgba(82,232,255,.78), 0 0 36px rgba(255,53,200,.28);
+    }
+
+    .setup-title span {
+      display: block;
+      color: var(--pink);
+      text-shadow: 0 0 20px rgba(255,53,200,.85);
+    }
+
+    .setup-kicker {
+      margin: 0;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 1000;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .grid-title {
+      margin: 14px 0 8px;
+      color: #bff7ff;
+      font-size: 15px;
+      font-weight: 1000;
+      font-style: italic;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .choice {
+      min-height: 178px;
+      padding: 12px;
+      text-align: left;
+      border: 1px solid rgba(82,232,255,.32);
+      color: var(--text);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), transparent 36%),
+        rgba(4, 12, 26, .84);
+      clip-path: polygon(16px 0, calc(100% - 26px) 0, 100% 26px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 26px 100%, 0 calc(100% - 26px), 0 16px);
+      box-shadow: inset 0 0 28px rgba(82,232,255,.06);
+    }
+
+    .choice.selected {
+      border-color: var(--gold);
+      box-shadow: 0 0 24px rgba(255,216,78,.28), inset 0 0 24px rgba(255,216,78,.08);
+    }
+
+    .choice h3 {
+      margin: 0 0 4px;
+      color: var(--gold);
+      font-size: 20px;
+      font-style: italic;
+      text-transform: uppercase;
+    }
+
+    .choice p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .portrait {
+      height: 76px;
+      margin: 9px 0;
+      border: 1px solid rgba(255,255,255,.12);
+      display: grid;
+      place-items: center;
+      font-size: 42px;
+      background: radial-gradient(circle, rgba(82,232,255,.18), transparent 60%), rgba(0,0,0,.24);
+    }
+
+    .stats {
+      display: grid;
+      gap: 5px;
+      margin-top: 8px;
+    }
+
+    .stat {
+      height: 6px;
+      background: rgba(255,255,255,.08);
+      overflow: hidden;
+    }
+
+    .stat i { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--pink), var(--gold)); }
+
+    .stage-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .stage-card { min-height: 118px; }
+
+    .start-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .start {
+      min-width: 230px;
+      min-height: 54px;
+      padding: 0 24px;
+      color: var(--ink);
+      font-size: 17px;
+      font-weight: 1000;
+      background: linear-gradient(135deg, #fff7a6, var(--gold), #ff7ada);
+      clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%, 0 calc(100% - 18px), 0 18px);
+      box-shadow: 0 0 26px rgba(255,216,78,.35);
+    }
+
+    .ghost {
+      min-width: 130px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border: 1px solid rgba(82,232,255,.32);
+      box-shadow: none;
+    }
+
+    @media (max-width: 820px) {
+      .app { padding: 8px; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 8px; }
+      .brand { min-height: 34px; }
+      .tagline { display: none; }
+      .sound { min-width: 74px; height: 32px; font-size: 11px; }
+      .hud { gap: 6px; }
+      .fighter-card { min-height: 64px; padding: 8px 10px; }
+      .label { font-size: 11px; }
+      .damage { font-size: 30px; }
+      .stocks { font-size: 12px; }
+      .timer-card { min-width: 92px; min-height: 46px; font-size: 20px; }
+      .arena { padding: 8px; }
+      .screen { width: 100%; }
+      .touch { display: grid; }
+      .setup-panel { max-height: 96vh; padding: 14px; }
+      .setup-head { grid-template-columns: 1fr; }
+      .cards, .stage-grid { grid-template-columns: 1fr; }
+      .choice { min-height: 112px; }
+      .portrait { height: 50px; font-size: 30px; }
+      .start-row { justify-content: stretch; }
+      .start, .ghost { flex: 1; min-width: 0; }
+    }
+
+    @media (max-height: 720px) and (max-width: 820px) {
+      .brand { display: none; }
+      .fighter-card { min-height: 54px; }
+      .arena { padding: 5px; }
+      .touch { min-height: 104px; }
+      .touch button { min-height: 92px; }
+      .pad { width: min(29vw, 124px); }
+    }
+
+    @media (pointer: coarse) and (max-width: 1024px) {
+      .app { padding: 8px; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 8px; }
+      .tagline { display: none; }
+      .touch { display: grid; }
+    }
+
+    @media (pointer: coarse) and (orientation: landscape) and (max-height: 560px) {
+      html, body { height: 100dvh; }
+      .app {
+        height: 100dvh;
+        min-height: 0;
+        overflow: hidden;
+        grid-template-rows: auto minmax(0, 1fr);
+        padding: 6px;
+        gap: 6px;
+      }
+      .brand { display: none; }
+      .fighter-card { min-height: 50px; padding: 6px 10px; }
+      .label { font-size: 10px; }
+      .damage { font-size: 25px; }
+      .stocks { font-size: 11px; }
+      .timer-card { min-width: 88px; min-height: 40px; font-size: 19px; }
+      .arena { padding: 5px; }
+      .screen { width: min(84vw, calc((100vh - 82px) * 16 / 9)); }
+      .touch {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        z-index: 9;
+        height: 92px;
+        min-height: 0;
+        grid-template-columns: 130px repeat(3, minmax(92px, 110px));
+        justify-content: space-between;
+        align-items: end;
+        gap: 8px;
+      }
+      .touch button { min-height: 84px; }
+      .pad { width: 112px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="brand">
+      <div class="brand-title">NEON <strong>RING</strong></div>
+      <button class="sound" id="soundBtn">SOUND</button>
+      <div class="tagline"><span>Fast.</span> <span>Flashy.</span> <span>For everyone.</span><br>One file. Any device. Pure fun.</div>
+    </header>
+
+    <section class="hud" aria-label="battle status">
+      <div class="fighter-card p1">
+        <div class="label"><span>P1</span><span id="p1Name">KAIRO</span></div>
+        <div class="damage-row">
+          <div class="damage" id="p1Damage">0<span>%</span></div>
+          <div class="stocks" id="p1Stocks">♥♥♥</div>
+        </div>
+      </div>
+      <div class="timer-card" id="timer">02:30</div>
+      <div class="fighter-card p2">
+        <div class="label"><span id="p2Name">BRUTE-X</span><span>P2</span></div>
+        <div class="damage-row">
+          <div class="damage" id="p2Damage">0<span>%</span></div>
+          <div class="stocks" id="p2Stocks">♥♥♥</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="arena">
+      <div class="screen" id="screen">
+        <canvas id="game" width="960" height="540" aria-label="NEON RING BRAWL game"></canvas>
+        <div class="scan"></div>
+      </div>
+    </section>
+
+    <section class="touch" aria-label="mobile controls">
+      <div class="pad" id="slidePad" aria-label="slide pad"><div class="stick" id="stick"></div></div>
+      <button class="attack" id="touchAttack">ATTACK</button>
+      <button class="jump" id="touchJump">JUMP</button>
+      <button class="special" id="touchSpecial">SPECIAL</button>
+    </section>
+
+    <section class="setup" id="setup">
+      <div class="setup-panel">
+        <div class="setup-head">
+          <div>
+            <p class="setup-kicker">Character setup</p>
+            <h1 class="setup-title">NEON <span>RING BRAWL</span></h1>
+          </div>
+          <button class="start ghost" id="randomBtn">RANDOM</button>
+        </div>
+
+        <h2 class="grid-title">Choose your fighter</h2>
+        <div class="cards" id="fighterChoices"></div>
+
+        <h2 class="grid-title">Choose stage</h2>
+        <div class="cards stage-grid" id="stageChoices"></div>
+
+        <div class="start-row">
+          <button class="start" id="startBtn">START BATTLE</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const W = 960, H = 540;
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const rects = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+
+    const FIGHTERS = {
+      kairo: {
+        name: 'KAIRO', icon: '⚡', role: 'Energy Duelist',
+        desc: '高速ダッシュと長いブレード波で攻める、初心者にも扱いやすい主人公タイプ。',
+        color: '#52e8ff', accent: '#168dff', speed: 330, jump: 690, weight: .9, power: 1.0, stat: [88, 62, 74]
+      },
+      brute: {
+        name: 'BRUTE-X', icon: '⬢', role: 'Gauntlet Brawler',
+        desc: '移動は重いが、近距離攻撃と必殺の吹っ飛ばしが強いパワー型。',
+        color: '#ffd84e', accent: '#ff9d2e', speed: 260, jump: 620, weight: 1.24, power: 1.28, stat: [54, 96, 60]
+      },
+      echo: {
+        name: 'ECHO', icon: '◌', role: 'Aerial Hacker',
+        desc: '空中機動とホログラム弾が得意。軽いが、遠距離から戦いやすい。',
+        color: '#ff7ada', accent: '#9b5cff', speed: 350, jump: 735, weight: .78, power: .92, stat: [82, 55, 96]
+      }
+    };
+
+    const STAGES = {
+      cyber: { name: 'NEON CYBER COLISEUM', a: '#52e8ff', b: '#ff35c8', c: '#071226' },
+      sky: { name: 'HOLOGRAM SKY RING', a: '#78ff9a', b: '#52e8ff', c: '#071b2b' },
+      core: { name: 'DATA-CORE REACTOR', a: '#ffd84e', b: '#9b5cff', c: '#140d24' }
+    };
+
+    class AudioKit {
+      constructor(btn) { this.btn = btn; this.ctx = null; this.master = null; this.loop = null; this.step = 0; }
+      init() {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return false;
+        if (!this.ctx) {
+          this.ctx = new AC();
+          this.master = this.ctx.createGain();
+          this.master.gain.value = .22;
+          this.master.connect(this.ctx.destination);
+        }
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        return true;
+      }
+      tone(f, d, type = 'square', vol = .06, slide = 0) {
+        if (!this.init()) return;
+        const t = this.ctx.currentTime, o = this.ctx.createOscillator(), g = this.ctx.createGain();
+        o.type = type; o.frequency.setValueAtTime(f, t);
+        if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, slide), t + d);
+        g.gain.setValueAtTime(.0001, t);
+        g.gain.exponentialRampToValueAtTime(vol, t + .01);
+        g.gain.exponentialRampToValueAtTime(.0001, t + d);
+        o.connect(g); g.connect(this.master); o.start(t); o.stop(t + d + .03);
+      }
+      noise(d = .16, vol = .04) {
+        if (!this.init()) return;
+        const b = this.ctx.createBuffer(1, this.ctx.sampleRate * d, this.ctx.sampleRate);
+        const data = b.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+        const s = this.ctx.createBufferSource(), g = this.ctx.createGain();
+        g.gain.value = vol; s.buffer = b; s.connect(g); g.connect(this.master); s.start();
+      }
+      start() {
+        if (!this.init()) return;
+        if (this.loop) return;
+        const bass = [65,65,0,98,65,0,130,0,73,73,0,110,73,0,146,0];
+        const lead = [523,659,784,988,880,784,659,587];
+        const tick = () => {
+          const b = bass[this.step % bass.length], l = lead[this.step % lead.length];
+          if (b) this.tone(b, .1, 'sawtooth', .055, b * .75);
+          if (this.step % 2 === 0) this.tone(l, .06, 'square', .032, l * 1.12);
+          if (this.step % 8 === 4) this.noise(.035, .016);
+          this.step++;
+        };
+        tick(); this.loop = setInterval(tick, 112); this.btn.textContent = 'SOUND ON';
+      }
+      toggle() { if (this.loop) { clearInterval(this.loop); this.loop = null; this.btn.textContent = 'SOUND'; } else this.start(); }
+      hit(big=false) { this.tone(big ? 118 : 210, big ? .22 : .12, 'sawtooth', big ? .08 : .055, 55); this.noise(big ? .28 : .12, big ? .07 : .035); }
+      swing() { this.tone(780, .06, 'square', .045, 360); }
+      special() { [390, 740, 1180].forEach((n, i) => setTimeout(() => this.tone(n, .08, 'triangle', .045), i * 42)); }
+      ko() { [220, 160, 90].forEach((n, i) => setTimeout(() => this.tone(n, .18, 'sawtooth', .08, 45), i * 90)); this.noise(.35, .09); }
+      startFx() { [523,784,1046].forEach((n, i) => setTimeout(() => this.tone(n, .09, 'square', .05), i * 70)); }
+    }
+
+    class Particle {
+      constructor(x, y, color, big = false) {
+        this.x = x; this.y = y; this.color = color; this.life = big ? .75 : .42; this.max = this.life;
+        const a = Math.random() * Math.PI * 2, s = (big ? 170 : 80) + Math.random() * (big ? 300 : 160);
+        this.vx = Math.cos(a) * s; this.vy = Math.sin(a) * s; this.r = (big ? 3 : 2) + Math.random() * 4;
+      }
+      update(dt) { this.x += this.vx * dt; this.y += this.vy * dt; this.vx *= .97; this.vy *= .97; this.life -= dt; }
+      draw(ctx) { ctx.globalAlpha = Math.max(0, this.life / this.max); ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.r, this.r); ctx.globalAlpha = 1; }
+    }
+
+    class Hitbox {
+      constructor(owner, x, y, w, h, damage, kb, life, color, kind = 'slash') {
+        Object.assign(this, { owner, x, y, w, h, damage, kb, life, max: life, color, kind, hit: false });
+      }
+      update(dt) { this.life -= dt; }
+      draw(ctx) {
+        const a = Math.max(0, this.life / this.max);
+        ctx.save(); ctx.globalAlpha = a; ctx.shadowColor = this.color; ctx.shadowBlur = 22; ctx.fillStyle = this.color;
+        if (this.kind === 'shock') { ctx.beginPath(); ctx.ellipse(this.x + this.w/2, this.y + this.h/2, this.w/2, this.h/2, 0, 0, Math.PI*2); ctx.fill(); }
+        else { ctx.fillRect(this.x, this.y, this.w, this.h); }
+        ctx.restore();
+      }
+    }
+
+    class Projectile {
+      constructor(owner, x, y, vx, vy, w, h, damage, kb, color) {
+        Object.assign(this, { owner, x, y, vx, vy, w, h, damage, kb, color, life: 1.05, hit: false });
+      }
+      update(dt) { this.life -= dt; this.x += this.vx * dt; this.y += this.vy * dt; }
+      draw(ctx) {
+        ctx.save(); ctx.shadowColor = this.color; ctx.shadowBlur = 24;
+        const g = ctx.createLinearGradient(this.x, this.y, this.x + this.w, this.y);
+        g.addColorStop(0, 'rgba(255,255,255,.96)'); g.addColorStop(.35, this.color); g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g; ctx.fillRect(this.x, this.y, this.w, this.h);
+        ctx.restore();
+      }
+    }
+
+    class Fighter {
+      constructor(id, cfg, x, y, team) {
+        Object.assign(this, { id, cfg, team });
+        this.spawnX = x; this.spawnY = y; this.w = id === 'brute' ? 52 : 38; this.h = id === 'brute' ? 72 : 62;
+        this.stocks = 3; this.damage = 0; this.reset();
+      }
+      reset() {
+        this.x = this.spawnX; this.y = this.spawnY; this.vx = 0; this.vy = 0; this.face = this.team === 1 ? 1 : -1;
+        this.grounded = false; this.attackCd = 0; this.specialCd = .4; this.hitstun = 0; this.inv = 1.2; this.jumpLock = false;
+      }
+      box() { return { x: this.x - this.w/2, y: this.y - this.h/2, w: this.w, h: this.h }; }
+      update(dt, game, input) {
+        this.attackCd -= dt; this.specialCd -= dt; this.hitstun -= dt; this.inv -= dt;
+        if (this.hitstun > 0) {
+          this.vy += 1500 * dt;
+        } else {
+          const ax = input.x || 0;
+          if (Math.abs(ax) > .08) this.face = ax > 0 ? 1 : -1;
+          this.vx += ax * this.cfg.speed * 6.5 * dt;
+          this.vx = clamp(this.vx, -this.cfg.speed, this.cfg.speed);
+          this.vx *= this.grounded ? .78 : .93;
+          if ((input.jump || game.consumeJump(this.team)) && this.grounded && !this.jumpLock) {
+            this.vy = -this.cfg.jump; this.grounded = false; this.jumpLock = true; game.audio.tone(520, .06, 'triangle', .04, 760);
+          }
+          if (!input.jump) this.jumpLock = false;
+          if (input.down && this.vy < 700) this.vy += 620 * dt;
+          if ((input.attack || game.consumeAttack(this.team)) && this.attackCd <= 0) this.normal(game);
+          if (game.consumeSpecial(this.team) && this.specialCd <= 0) this.special(game);
+          this.vy += 1500 * dt;
+        }
+
+        const oldY = this.y;
+        this.x += this.vx * dt; this.y += this.vy * dt;
+        this.grounded = false;
+        for (const p of game.platforms) {
+          const b = this.box();
+          if (this.vy >= 0 && oldY + this.h/2 <= p.y + 8 && b.x + b.w > p.x && b.x < p.x + p.w && this.y + this.h/2 >= p.y) {
+            this.y = p.y - this.h/2; this.vy = 0; this.grounded = true;
+          }
+        }
+        if (this.x < -170 || this.x > W + 170 || this.y > H + 140 || this.y < -180) game.ringOut(this);
+      }
+      normal(game) {
+        this.attackCd = .28;
+        const d = this.face;
+        const w = this.id === 'brute' ? 76 : 62, h = this.id === 'brute' ? 52 : 42;
+        const x = this.x + d * (this.w/2 + w/2 - 2) - w/2;
+        const y = this.y - h/2;
+        game.hitboxes.push(new Hitbox(this, x, y, w, h, 8 * this.cfg.power, 280 * this.cfg.power, .12, this.cfg.color));
+        game.flashLine(this.x, this.y, d, this.cfg.color); game.audio.swing();
+      }
+      special(game) {
+        this.specialCd = 1.05;
+        const d = this.face;
+        game.audio.special();
+        if (this.id === 'brute') {
+          const w = 118, h = 78, x = this.x + d * 36 - w/2, y = this.y - h/2 + 4;
+          game.hitboxes.push(new Hitbox(this, x, y, w, h, 16, 620, .18, this.cfg.color, 'shock'));
+          for (let i = 0; i < 18; i++) game.particles.push(new Particle(this.x + d*34, this.y, this.cfg.color, true));
+        } else if (this.id === 'echo') {
+          game.projectiles.push(new Projectile(this, this.x + d * 24, this.y - 18, d * 560, -35, 92, 28, 12, 420, this.cfg.color));
+          game.projectiles.push(new Projectile(this, this.x + d * 24, this.y + 18, d * 520, 35, 70, 22, 9, 320, this.cfg.accent));
+        } else {
+          game.projectiles.push(new Projectile(this, this.x + d * 26, this.y - 7, d * 680, 0, 132, 18, 13, 470, this.cfg.color));
+        }
+      }
+      applyHit(hit, game) {
+        if (this.inv > 0 || hit.owner === this || hit.hit) return;
+        hit.hit = true; this.damage = Math.min(999, this.damage + hit.damage);
+        const d = hit.owner.x <= this.x ? 1 : -1;
+        const scale = (hit.kb + this.damage * 5.2) / this.cfg.weight;
+        this.vx = d * scale; this.vy = -scale * .44; this.hitstun = .16 + hit.damage / 45; this.inv = .08;
+        game.audio.hit(hit.damage > 12);
+        for (let i = 0; i < 14; i++) game.particles.push(new Particle(this.x, this.y, hit.color || '#fff', hit.damage > 12));
+      }
+      draw(ctx) {
+        ctx.save(); ctx.translate(this.x, this.y); ctx.scale(this.face, 1);
+        const alpha = this.inv > 0 && Math.floor(this.inv * 14) % 2 === 0 ? .45 : 1;
+        ctx.globalAlpha = alpha; ctx.shadowColor = this.cfg.color; ctx.shadowBlur = 18;
+        if (this.id === 'brute') this.drawBrute(ctx); else if (this.id === 'echo') this.drawEcho(ctx); else this.drawKairo(ctx);
+        ctx.restore();
+      }
+      drawKairo(ctx) {
+        ctx.fillStyle = this.cfg.color;
+        ctx.beginPath(); ctx.moveTo(18, -24); ctx.lineTo(2, -34); ctx.lineTo(-18, -18); ctx.lineTo(-14, 28); ctx.lineTo(12, 28); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#eaffff'; ctx.fillRect(-4, -26, 14, 9);
+        ctx.strokeStyle = this.cfg.color; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(12, 5); ctx.lineTo(46, 28); ctx.stroke();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(16, 6); ctx.lineTo(52, 30); ctx.stroke();
+        ctx.fillStyle = this.cfg.accent; ctx.fillRect(-18, -8, 12, 28);
+      }
+      drawBrute(ctx) {
+        ctx.fillStyle = this.cfg.color; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-26, -34, 52, 62, 12) : ctx.rect(-26, -34, 52, 62); ctx.fill();
+        ctx.fillStyle = '#121212'; ctx.fillRect(-16, -24, 32, 13);
+        ctx.fillStyle = this.cfg.accent; ctx.beginPath(); ctx.arc(30, -4, 16, 0, Math.PI*2); ctx.arc(-30, -4, 16, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#ffd84e'; ctx.fillRect(-16, 28, 12, 20); ctx.fillRect(6, 28, 12, 20);
+      }
+      drawEcho(ctx) {
+        ctx.fillStyle = this.cfg.color;
+        ctx.beginPath(); ctx.moveTo(0, -34); ctx.lineTo(20, -16); ctx.lineTo(12, 30); ctx.lineTo(-12, 30); ctx.lineTo(-20, -16); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#050815'; ctx.beginPath(); ctx.arc(0, -18, 10, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = this.cfg.accent; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(-29, -4, 11, 0, Math.PI*2); ctx.arc(29, -4, 11, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = '#eaffff'; ctx.fillRect(-6, -4, 12, 28);
+      }
+    }
+
+    class Game {
+      constructor() {
+        this.canvas = document.getElementById('game'); this.ctx = this.canvas.getContext('2d');
+        this.audio = new AudioKit(document.getElementById('soundBtn'));
+        this.selected = 'kairo'; this.stageId = 'cyber'; this.state = 'select'; this.last = 0;
+        this.input = { 1: {x:0,y:0,down:false,jump:false,attack:false}, 2: {x:0,y:0,down:false,jump:false,attack:false} };
+        this.queues = { 1: {jump:0, attack:0, special:0}, 2: {jump:0, attack:0, special:0} };
+        this.hitboxes = []; this.projectiles = []; this.particles = []; this.effects = [];
+        this.keys = {}; this.time = 150; this.message = 'CHARACTER SETUP'; this.messageTime = 999;
+        this.platforms = [];
+        this.bind(); this.renderSetup(); this.resizePlatforms(); requestAnimationFrame(t => this.loop(t));
+      }
+      bind() {
+        document.getElementById('soundBtn').onclick = () => this.audio.toggle();
+        document.getElementById('startBtn').onclick = () => this.start();
+        document.getElementById('randomBtn').onclick = () => { this.selected = this.pick(Object.keys(FIGHTERS)); this.stageId = this.pick(Object.keys(STAGES)); this.renderSetup(); };
+        window.addEventListener('keydown', e => {
+          if (['KeyW','KeyA','KeyS','KeyD','Space','KeyJ','KeyK','KeyL','ShiftLeft','ShiftRight','Enter','KeyP'].includes(e.code)) e.preventDefault();
+          if (e.code === 'Enter' && this.state !== 'playing') this.start();
+          if (e.code === 'KeyP' && this.state === 'playing') this.state = 'pause'; else if (e.code === 'KeyP' && this.state === 'pause') this.state = 'playing';
+          this.keys[e.code] = true;
+          if (e.code === 'KeyW' || e.code === 'KeyK') this.queue(1, 'jump');
+          if (e.code === 'Space' || e.code === 'KeyJ') this.input[1].attack = true;
+          if (e.code === 'KeyL' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') this.queue(1, 'special');
+        });
+        window.addEventListener('keyup', e => {
+          this.keys[e.code] = false;
+          if (e.code === 'Space' || e.code === 'KeyJ') this.input[1].attack = false;
+        });
+        this.bindTouch();
+        document.getElementById('screen').addEventListener('pointerdown', () => { if (this.state === 'over') this.showSetup(); });
+      }
+      bindTouch() {
+        const pad = document.getElementById('slidePad'), stick = document.getElementById('stick');
+        const reset = () => { this.input[1].x = 0; this.input[1].y = 0; this.input[1].down = false; stick.style.transform = 'translate(-50%, -50%)'; this.padPointer = null; };
+        const move = e => {
+          if (this.padPointer !== null && e.pointerId !== this.padPointer) return;
+          const r = pad.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2, max = r.width * .29;
+          let dx = e.clientX - cx, dy = e.clientY - cy; const len = Math.hypot(dx, dy);
+          if (len > max) { dx = dx / len * max; dy = dy / len * max; }
+          this.input[1].x = Math.abs(dx) < 5 ? 0 : dx / max; this.input[1].y = Math.abs(dy) < 5 ? 0 : dy / max; this.input[1].down = this.input[1].y > .45;
+          stick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        };
+        pad.addEventListener('pointerdown', e => { e.preventDefault(); this.padPointer = e.pointerId; if (pad.setPointerCapture) pad.setPointerCapture(e.pointerId); move(e); });
+        pad.addEventListener('pointermove', e => { if (this.padPointer === e.pointerId) { e.preventDefault(); move(e); } });
+        pad.addEventListener('pointerup', reset); pad.addEventListener('pointercancel', reset);
+        const hold = (id, on, off) => {
+          const el = document.getElementById(id);
+          el.addEventListener('pointerdown', e => { e.preventDefault(); on(); });
+          el.addEventListener('pointerup', off); el.addEventListener('pointercancel', off); el.addEventListener('pointerleave', off);
+        };
+        hold('touchAttack', () => this.input[1].attack = true, () => this.input[1].attack = false);
+        hold('touchJump', () => this.queue(1, 'jump'), () => {});
+        hold('touchSpecial', () => this.queue(1, 'special'), () => {});
+      }
+      renderSetup() {
+        const f = document.getElementById('fighterChoices');
+        f.innerHTML = Object.entries(FIGHTERS).map(([id, c]) => `
+          <button class="choice ${id===this.selected?'selected':''}" data-fighter="${id}">
+            <h3>${c.name}</h3><p>${c.role}</p><div class="portrait" style="color:${c.color}">${c.icon}</div><p>${c.desc}</p>
+            <div class="stats"><div class="stat"><i style="width:${c.stat[0]}%"></i></div><div class="stat"><i style="width:${c.stat[1]}%"></i></div><div class="stat"><i style="width:${c.stat[2]}%"></i></div></div>
+          </button>`).join('');
+        f.querySelectorAll('[data-fighter]').forEach(b => b.onclick = () => { this.selected = b.dataset.fighter; this.renderSetup(); });
+        const s = document.getElementById('stageChoices');
+        s.innerHTML = Object.entries(STAGES).map(([id, st]) => `
+          <button class="choice stage-card ${id===this.stageId?'selected':''}" data-stage="${id}">
+            <h3>${st.name}</h3><div class="portrait" style="background:linear-gradient(135deg,${st.c},${st.a}33,${st.b}33);color:${st.a}">▰ ▱ ▰</div><p>中央リングと左右の浮遊足場で戦うネオンアリーナ。</p>
+          </button>`).join('');
+        s.querySelectorAll('[data-stage]').forEach(b => b.onclick = () => { this.stageId = b.dataset.stage; this.renderSetup(); });
+      }
+      start() {
+        this.audio.start(); this.audio.startFx();
+        const cpuId = this.selected === 'brute' ? 'kairo' : 'brute';
+        this.p1 = new Fighter(this.selected, FIGHTERS[this.selected], 255, 330, 1);
+        this.p2 = new Fighter(cpuId, FIGHTERS[cpuId], 705, 330, 2);
+        this.time = 150; this.state = 'playing'; this.message = 'FIGHT!'; this.messageTime = 1.1;
+        this.hitboxes = []; this.projectiles = []; this.particles = []; this.effects = [];
+        document.getElementById('setup').classList.add('hidden');
+        this.updateHud();
+      }
+      showSetup() { this.state = 'select'; document.getElementById('setup').classList.remove('hidden'); }
+      pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+      queue(team, type) { this.queues[team][type] = .18; }
+      consumeJump(team) { return this.consume(team, 'jump'); }
+      consumeAttack(team) { return this.consume(team, 'attack'); }
+      consumeSpecial(team) { return this.consume(team, 'special'); }
+      consume(team, type) { if (this.queues[team][type] > 0) { this.queues[team][type] = 0; return true; } return false; }
+      resizePlatforms() {
+        this.platforms = [
+          { x: 125, y: 414, w: 710, h: 28, main: true },
+          { x: 160, y: 270, w: 220, h: 22 },
+          { x: 580, y: 270, w: 220, h: 22 }
+        ];
+      }
+      cpuInput() {
+        const cpu = this.p2, p = this.p1, dx = p.x - cpu.x, dy = p.y - cpu.y;
+        const input = this.input[2]; input.x = Math.abs(dx) > 44 ? Math.sign(dx) : 0; input.down = false; input.jump = false; input.attack = false;
+        if (dy < -65 && cpu.grounded) this.queue(2, 'jump');
+        if (Math.abs(dx) < 82 && Math.abs(dy) < 60) input.attack = true;
+        if (Math.abs(dx) < 260 && Math.abs(dx) > 105 && Math.random() < .022) this.queue(2, 'special');
+        if (cpu.x < 165) input.x = 1; if (cpu.x > 795) input.x = -1;
+        return input;
+      }
+      update(dt) {
+        if (this.state !== 'playing') return;
+        this.time = Math.max(0, this.time - dt); this.messageTime = Math.max(0, this.messageTime - dt);
+        for (const t of [1,2]) for (const k of Object.keys(this.queues[t])) this.queues[t][k] = Math.max(0, this.queues[t][k] - dt);
+        const keyboardX = (this.keys.KeyD ? 1 : 0) - (this.keys.KeyA ? 1 : 0);
+        if (!this.padPointer || keyboardX !== 0) this.input[1].x = keyboardX;
+        this.input[1].down = !!this.keys.KeyS || this.input[1].y > .45;
+        this.p1.update(dt, this, this.input[1]); this.p2.update(dt, this, this.cpuInput());
+        for (const a of [this.hitboxes, this.projectiles, this.particles]) for (const o of a) o.update(dt, this);
+        this.resolveHits();
+        this.hitboxes = this.hitboxes.filter(h => h.life > 0 && !h.hit);
+        this.projectiles = this.projectiles.filter(p => p.life > 0 && !p.hit && p.x > -170 && p.x < W + 170);
+        this.particles = this.particles.filter(p => p.life > 0);
+        this.updateHud();
+        if (this.time <= 0) this.finishByTime();
+      }
+      resolveHits() {
+        for (const h of this.hitboxes) {
+          const target = h.owner.team === 1 ? this.p2 : this.p1;
+          if (rects(h, target.box())) target.applyHit(h, this);
+        }
+        for (const p of this.projectiles) {
+          const target = p.owner.team === 1 ? this.p2 : this.p1;
+          if (rects(p, target.box())) target.applyHit(p, this);
+        }
+      }
+      ringOut(f) {
+        if (f.inv > 1.5) return;
+        f.stocks--; this.audio.ko();
+        const who = f.team === 1 ? 'P1 RING OUT!' : 'P2 RING OUT!';
+        this.message = who; this.messageTime = 1.15;
+        for (let i = 0; i < 46; i++) this.particles.push(new Particle(clamp(f.x, 80, W-80), clamp(f.y, 80, H-80), f.cfg.color, true));
+        if (f.stocks <= 0) { this.gameOver(f.team === 1 ? 2 : 1); return; }
+        f.damage = Math.max(0, f.damage * .25); f.reset();
+      }
+      finishByTime() {
+        const winner = this.p1.stocks !== this.p2.stocks ? (this.p1.stocks > this.p2.stocks ? 1 : 2) : (this.p1.damage <= this.p2.damage ? 1 : 2);
+        this.gameOver(winner);
+      }
+      gameOver(winner) { this.state = 'over'; this.message = winner === 1 ? 'P1 WINS!' : 'P2 WINS!'; this.messageTime = 999; }
+      flashLine(x, y, d, color) { this.effects.push({ x, y, d, color, life: .18, max: .18 }); }
+      updateHud() {
+        if (!this.p1 || !this.p2) return;
+        document.getElementById('p1Name').textContent = this.p1.cfg.name;
+        document.getElementById('p2Name').textContent = this.p2.cfg.name;
+        document.getElementById('p1Damage').innerHTML = `${Math.floor(this.p1.damage)}<span>%</span>`;
+        document.getElementById('p2Damage').innerHTML = `${Math.floor(this.p2.damage)}<span>%</span>`;
+        document.getElementById('p1Stocks').textContent = '♥'.repeat(Math.max(0, this.p1.stocks));
+        document.getElementById('p2Stocks').textContent = '♥'.repeat(Math.max(0, this.p2.stocks));
+        const m = Math.floor(this.time / 60), s = Math.floor(this.time % 60);
+        document.getElementById('timer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        document.getElementById('screen').dataset.state = this.state;
+      }
+      drawBg(ctx) {
+        const st = STAGES[this.stageId];
+        const g = ctx.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#030611'); g.addColorStop(.45, st.c); g.addColorStop(1, '#02030a');
+        ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+        const rg = ctx.createRadialGradient(W/2, 185, 10, W/2, 185, 320);
+        rg.addColorStop(0, st.a + '55'); rg.addColorStop(.42, st.b + '22'); rg.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = rg; ctx.fillRect(0,0,W,H);
+        ctx.strokeStyle = 'rgba(82,232,255,.08)'; ctx.lineWidth = 1;
+        for (let y = 0; y < H; y += 28) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+        for (let x = 0; x < W; x += 56) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+        for (let i = 0; i < 38; i++) {
+          const x = (i * 137 + this.time * 24) % W, y = (i*i*31) % 240 + 28;
+          ctx.fillStyle = i % 3 ? 'rgba(82,232,255,.45)' : 'rgba(255,53,200,.5)';
+          ctx.fillRect(x, y, 2, 2);
+        }
+        ctx.fillStyle = 'rgba(255,255,255,.08)';
+        for (let i = 0; i < 34; i++) ctx.fillRect(i * 30, 454 + Math.sin(i + this.time) * 5, 10, 36);
+        ctx.textAlign = 'center'; ctx.font = '900 38px system-ui'; ctx.fillStyle = st.a; ctx.shadowColor = st.a; ctx.shadowBlur = 18;
+        ctx.fillText('NEON RING', W/2, 132); ctx.shadowBlur = 0;
+      }
+      drawPlatforms(ctx) {
+        for (const p of this.platforms) {
+          const st = STAGES[this.stageId];
+          ctx.save(); ctx.shadowColor = st.a; ctx.shadowBlur = 18;
+          ctx.fillStyle = '#0b1324'; ctx.fillRect(p.x, p.y, p.w, p.h);
+          ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(p.x + 12, p.y + 4, p.w - 24, 4);
+          ctx.strokeStyle = p.main ? st.b : st.a; ctx.lineWidth = 3; ctx.strokeRect(p.x, p.y, p.w, p.h);
+          ctx.fillStyle = p.main ? st.b : st.a;
+          for (let x = p.x + 22; x < p.x + p.w - 12; x += 72) ctx.fillRect(x, p.y + p.h - 5, 42, 4);
+          ctx.restore();
+        }
+      }
+      drawOverlay(ctx) {
+        if (this.messageTime <= 0) return;
+        ctx.save(); ctx.textAlign = 'center'; ctx.shadowColor = this.message.includes('WINS') ? varColor('--gold') : '#ff35c8'; ctx.shadowBlur = 24;
+        ctx.fillStyle = this.message.includes('FIGHT') ? '#ffd84e' : '#ffffff';
+        ctx.font = '1000 48px system-ui'; ctx.fillText(this.message, W/2, 78);
+        if (this.state === 'over') { ctx.font = '800 18px system-ui'; ctx.fillStyle = '#bff7ff'; ctx.fillText('Tap screen or Enter to return to character setup', W/2, 110); }
+        ctx.restore();
+      }
+      drawEffects(ctx) {
+        this.effects = this.effects.filter(e => (e.life -= 1/60) > 0);
+        for (const e of this.effects) {
+          const a = e.life / e.max; ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = e.color; ctx.shadowColor = e.color; ctx.shadowBlur = 18; ctx.lineWidth = 7;
+          ctx.beginPath(); ctx.moveTo(e.x + e.d * 10, e.y - 22); ctx.lineTo(e.x + e.d * 88, e.y + 18); ctx.stroke(); ctx.restore();
+        }
+      }
+      draw() {
+        const ctx = this.ctx; ctx.clearRect(0,0,W,H); this.drawBg(ctx); this.drawPlatforms(ctx);
+        if (this.p1 && this.p2) {
+          for (const p of this.projectiles) p.draw(ctx);
+          for (const h of this.hitboxes) h.draw(ctx);
+          this.p1.draw(ctx); this.p2.draw(ctx);
+        }
+        for (const p of this.particles) p.draw(ctx);
+        this.drawEffects(ctx); this.drawOverlay(ctx);
+      }
+      loop(t) { const dt = Math.min(.033, (t - this.last) / 1000 || 0); this.last = t; this.update(dt); this.draw(); requestAnimationFrame(n => this.loop(n)); }
+    }
+
+    function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#ffd84e'; }
+    const game = new Game();
+  </script>
+</body>
+</html>
